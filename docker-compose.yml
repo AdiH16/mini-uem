@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17
+    container_name: mini_uem_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mini_uem
+      POSTGRES_USER: mini_uem_user
+      POSTGRES_PASSWORD: mini_uem_pass
+    ports:
+      - "55432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mini_uem_user -d mini_uem"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db_data:
