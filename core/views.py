@@ -1,8 +1,9 @@
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Owner, Device, Policy, DevicePolicy
 from .serializers import OwnerSerializer, DeviceSerializer, PolicySerializer
@@ -15,14 +16,28 @@ def health(request):
 class OwnerViewSet(viewsets.ModelViewSet):
     queryset = Owner.objects.all().order_by('id')
     serializer_class = OwnerSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    search_fields = ["name", "email"]
+    ordering_fields = ["id", "name", "email"]
+    ordering = ["id"]
 
 class PolicyViewSet(viewsets.ModelViewSet):
     queryset = Policy.objects.all().order_by('id')
     serializer_class = PolicySerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    search_fields = ["name", "type"]
+    filterset_fields = ["type"]
+    ordering_fields = ["id", "name", "type", "created_at"]
+    ordering = ["-id"]
 
 class DeviceViewSet(viewsets.ModelViewSet):
     queryset = Device.objects.select_related("owner").prefetch_related("policies").order_by("-id")
     serializer_class = DeviceSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    search_fields = ["device_name", "owner__name", "owner__email"]
+    filterset_fields = ["os_type", "status", "owner"]  
+    ordering_fields = ["id", "device_name", "last_check_in", "created_at", "updated_at"]
+    ordering = ["-id"]
 
     @action(detail=True, methods=["POST"], permission_classes=[AllowAny])
     def check_in(self, request, pk=None):
