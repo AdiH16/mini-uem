@@ -17,5 +17,22 @@ services:
       timeout: 3s
       retries: 10
 
+  web:
+    build: .
+    container_name: mini_uem_web
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: ["/entrypoint.sh"]
+
 volumes:
   db_data:
